@@ -1,15 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { LogOut, Code, Wifi, WifiOff, FileCode, MonitorPlay, Eye } from 'lucide-react';
+import { LogOut, Code, Wifi, WifiOff, FileCode, MonitorPlay } from 'lucide-react';
+import React from 'react';
 
 interface StudentViewProps {
   roomCode: string;
   onGoHome: () => void;
 }
 
-// Syntax highlighter function
-function highlightSyntax(code: string, type: 'html' | 'css' | 'js'): JSX.Element {
+// Syntax highlighter function - returns React elements
+function highlightSyntax(code: string, type: 'html' | 'css' | 'js') {
   if (type === 'html') {
     // Highlight HTML
     const highlighted = code
@@ -21,7 +22,7 @@ function highlightSyntax(code: string, type: 'html' | 'css' | 'js'): JSX.Element
       .replace(/"([^"]*)"/g, '<span class="text-green-400">"$1"</span>')
       .replace(/&lt;!--(.*?)--&gt;/g, '<span class="text-zinc-500">&lt;!--$1--&gt;</span>');
     
-    return <span dangerouslySetInnerHTML={{ __html: highlighted }} />;
+    return React.createElement('span', { dangerouslySetInnerHTML: { __html: highlighted } });
   } else if (type === 'css') {
     // Highlight CSS
     const highlighted = code
@@ -31,7 +32,7 @@ function highlightSyntax(code: string, type: 'html' | 'css' | 'js'): JSX.Element
       .replace(/\/\*[\s\S]*?\*\//g, '<span class="text-zinc-500">$&</span>')
       .replace(/{|}/g, '<span class="text-pink-400">$&</span>');
     
-    return <span dangerouslySetInnerHTML={{ __html: highlighted }} />;
+    return React.createElement('span', { dangerouslySetInnerHTML: { __html: highlighted } });
   } else {
     // Highlight JavaScript
     const keywords = ['const', 'let', 'var', 'function', 'return', 'if', 'else', 'for', 'while', 'class', 'import', 'export', 'from', 'async', 'await', 'try', 'catch', 'new', 'this', 'true', 'false', 'null', 'undefined'];
@@ -61,7 +62,7 @@ function highlightSyntax(code: string, type: 'html' | 'css' | 'js'): JSX.Element
     // Function names
     highlighted = highlighted.replace(/(\w+)(?=\()/g, '<span class="text-sky-300">$1</span>');
     
-    return <span dangerouslySetInnerHTML={{ __html: highlighted }} />;
+    return React.createElement('span', { dangerouslySetInnerHTML: { __html: highlighted } });
   }
 }
 
@@ -172,16 +173,16 @@ button {
       <header className="border-b border-zinc-800 bg-zinc-900/50 px-4 py-3">
         <div className="flex items-center justify-between max-w-screen-2xl mx-auto">
           <div className="flex items-center gap-4">
-            <h1 className="text-lg font-semibold">Code Classroom</h1>
+            <h1 className="text-lg font-semibold">Aula de Código</h1>
             <div className="h-6 w-px bg-zinc-700" />
             <div className="flex items-center gap-2">
-              <span className="text-sm text-zinc-400">Room:</span>
+              <span className="text-sm text-zinc-400">Sala:</span>
               <code className="px-2 py-0.5 bg-zinc-800 rounded text-sm font-mono text-purple-400">
                 {roomCode}
               </code>
             </div>
             <span className="text-xs text-zinc-500 bg-zinc-800/50 px-2 py-1 rounded">
-              Student View
+              Vista Estudiante
             </span>
           </div>
 
@@ -191,12 +192,12 @@ button {
               isConnected ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'
             }`}>
               {isConnected ? <Wifi className="w-4 h-4" /> : <WifiOff className="w-4 h-4" />}
-              <span className="text-sm">{isConnected ? 'Live' : 'Reconnecting...'}</span>
+              <span className="text-sm">{isConnected ? 'En vivo' : 'Reconectando...'}</span>
             </div>
 
             {lastUpdate && (
               <span className="text-xs text-zinc-500">
-                Updated: {lastUpdate.toLocaleTimeString()}
+                Actualizado: {lastUpdate.toLocaleTimeString()}
               </span>
             )}
 
@@ -205,7 +206,7 @@ button {
               className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-colors"
             >
               <LogOut className="w-4 h-4" />
-              Leave
+              Salir
             </button>
           </div>
         </div>
@@ -249,10 +250,10 @@ button {
           <div className="px-4 py-2 border-b border-zinc-800 bg-zinc-900/50 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <MonitorPlay className="w-4 h-4 text-zinc-400" />
-              <span className="text-sm font-medium text-zinc-300">Live Preview</span>
+              <span className="text-sm font-medium text-zinc-300">Vista Previa</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-zinc-500">Updated {lastUpdate ? lastUpdate.toLocaleTimeString() : 'Never'}</span>
+              <span className="text-xs text-zinc-500">Actualizado {lastUpdate ? lastUpdate.toLocaleTimeString() : 'Nunca'}</span>
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
             </div>
           </div>
@@ -263,7 +264,7 @@ button {
               srcDoc={srcDoc}
               className="w-full h-full border-0"
               sandbox="allow-scripts"
-              title="Student Preview"
+              title="Vista Previa del Estudiante"
             />
           </div>
         </div>

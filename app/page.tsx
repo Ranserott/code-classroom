@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { generateRoomCode } from '@/lib/utils';
 import TeacherView from '@/components/TeacherView';
 import StudentView from '@/components/StudentView';
@@ -42,10 +42,10 @@ export default function Home() {
       <div className="max-w-4xl w-full">
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent mb-4">
-            Code Classroom
+            Aula de Código
           </h1>
           <p className="text-zinc-400 text-lg">
-            Collaborative coding classroom for teachers and students
+            Aula colaborativa de programación para profesores y estudiantes
           </p>
         </div>
 
@@ -58,16 +58,16 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5-1.253" />
                 </svg>
               </div>
-              <h2 className="text-xl font-semibold text-zinc-100">I&apos;m a Teacher</h2>
+              <h2 className="text-xl font-semibold text-zinc-100">Soy Profesor</h2>
             </div>
             <p className="text-zinc-400 mb-6">
-              Create a classroom, write code, and share it with your students.
+              Crea un aula, escribe código y compártelo con tus estudiantes.
             </p>
             <button 
               onClick={createRoom}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
             >
-              Create New Room
+              Crear Nueva Aula
             </button>
           </div>
 
@@ -79,15 +79,15 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                 </svg>
               </div>
-              <h2 className="text-xl font-semibold text-zinc-100">I&apos;m a Student</h2>
+              <h2 className="text-xl font-semibold text-zinc-100">Soy Estudiante</h2>
             </div>
             <p className="text-zinc-400 mb-6">
-              Join a classroom using the room code from your teacher.
+              Únete a un aula usando el código proporcionado por tu profesor.
             </p>
             <div className="space-y-3">
               <input
                 type="text"
-                placeholder="Enter room code (e.g., ABC123)"
+                placeholder="Ingresa el código (ej: ABC123)"
                 value={inputCode}
                 onChange={(e) => setInputCode(e.target.value.toUpperCase())}
                 className="w-full bg-zinc-950 border border-zinc-800 text-white placeholder:text-zinc-600 px-3 py-2 rounded-lg focus:outline-none focus:border-purple-500"
@@ -98,7 +98,7 @@ export default function Home() {
                 disabled={!inputCode.trim()}
                 className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800/50 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors"
               >
-                Join Room
+                Unirse al Aula
               </button>
             </div>
           </div>
