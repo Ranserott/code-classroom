@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { LogOut, Code, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { LogOut, Code, Wifi, WifiOff, Eye, FileCode, MonitorPlay } from 'lucide-react';
 
 interface StudentViewProps {
   roomCode: string;
@@ -43,6 +43,8 @@ button {
 
   const [isConnected, setIsConnected] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [activeTab, setActiveTab] = useState<'code' | 'preview'>('preview');
+  const [activeCodeTab, setActiveCodeTab] = useState<'html' | 'css' | 'js'>('html');
 
   const srcDoc = `
     <!DOCTYPE html>
@@ -82,7 +84,6 @@ button {
       
       eventSource.onerror = () => {
         setIsConnected(false);
-        // Reconnect after 3 seconds
         setTimeout(() => {
           if (eventSource) {
             eventSource.close();
@@ -100,6 +101,14 @@ button {
       }
     };
   }, []);
+
+  const getCodeContent = () => {
+    switch (activeCodeTab) {
+      case 'html': return html;
+      case 'css': return css;
+      case 'js': return js;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
@@ -146,20 +155,50 @@ button {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="h-[calc(100vh-64px)]">
-        <div className="h-full flex flex-col">
-          {/* Info Bar */}
-          <div className="px-4 py-2 border-b border-zinc-800 bg-zinc-900/30 flex items-center justify-between">
+      {/* Main Content - Split View */}
+      <main className="h-[calc(100vh-64px)] flex">
+        {/* Left Side - Code */}
+        <div className="w-1/2 flex flex-col border-r border-zinc-800">
+          {/* Code Tabs */}
+          <div className="flex border-b border-zinc-800 bg-zinc-900/50">
+            {(['html', 'css', 'js'] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveCodeTab(tab)}
+                className={`px-6 py-3 text-sm font-medium border-r border-zinc-800 transition-colors ${
+                  activeCodeTab === tab
+                    ? 'bg-zinc-800 text-zinc-100'
+                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <FileCode className="w-4 h-4" />
+                  {tab.toUpperCase()}
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Code Display */}
+          <div className="flex-1 bg-zinc-900/30 p-4 overflow-auto">
+            <pre className="text-sm font-mono text-zinc-300 leading-relaxed whitespace-pre-wrap">
+              {getCodeContent()}
+            </pre>
+          </div>
+        </div>
+
+        {/* Right Side - Preview */}
+        <div className="w-1/2 flex flex-col">
+          {/* Preview Header */}
+          <div className="px-4 py-2 border-b border-zinc-800 bg-zinc-900/50 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Code className="w-4 h-4 text-zinc-400" />
-              <span className="text-sm text-zinc-400">Live Preview - Teacher Code</span>
+              <MonitorPlay className="w-4 h-4 text-zinc-400" />
+              <span className="text-sm font-medium text-zinc-300">Live Preview</span>
             </div>
-            {!isConnected && (
-              <span className="text-xs text-yellow-500">
-                Reconnecting to server...
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-zinc-500">Updated {lastUpdate ? lastUpdate.toLocaleTimeString() : 'Never'}</span>
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            </div>
           </div>
 
           {/* Preview */}
