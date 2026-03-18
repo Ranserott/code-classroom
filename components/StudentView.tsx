@@ -9,44 +9,54 @@ interface StudentViewProps {
   onGoHome: () => void;
 }
 
-// Simple syntax highlighter using dangerouslySetInnerHTML
+// Simple syntax highlighter - returns highlighted HTML string
 function getHighlightedCode(code: string, type: 'html' | 'css' | 'js'): string {
   if (type === 'html') {
-    // First escape HTML entities
-    let escaped = code
+    // Escape HTML first
+    let result = code
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
     
-    // Then apply highlighting - use more specific patterns
-    return escaped
-      // Tags (e.g., <div>, </div>, <br/>)
-      .replace(/(&lt;\/?[\w-]+)(&gt;|\s)/g, '<span style="color:#f472b6">$1</span>$2')
-      // Closing tag marker
-      .replace(/(&lt;)\/(\/?)/g, '$1<span style="color:#f472b6">/</span>$2')
-      // Attributes
-      .replace(/\s([\w-]+)=/g, ' <span style="color:#fbbf24">$1</span>=')
-      // String values in attributes
-      .replace(/"([^"]*)"/g, '<span style="color:#4ade80">"$1"</span>')
-      // Comments
-      .replace(/&lt;!--(.*?)--&gt;/g, '<span style="color:#71717a">&lt;!--$1--&gt;</span>');
+    // Highlight tags (e.g., <div>, </div>)
+    result = result.replace(/(&lt;\/?)([\w-]+)/g, '<span style="color:#f472b6">$1$2</span>');
+    
+    // Highlight closing >
+    result = result.replace(/&gt;/g, '<span style="color:#f472b6">&gt;</span>');
+    
+    // Highlight attributes
+    result = result.replace(/\s([\w-]+)=/g, ' <span style="color:#fbbf24">$1</span>=');
+    
+    // Highlight string values
+    result = result.replace(/"([^"]*)"/g, '<span style="color:#4ade80">"$1"</span>');
+    
+    return result;
   } else if (type === 'css') {
-    return code
-      .replace(/([\w-]+)\s*:/g, '<span style="color:#7dd3fc">$1</span>:')  // Properties light blue
-      .replace(/:\s*([^;{}]+)/g, ': <span style="color:#4ade80">$1</span>')  // Values green
-      .replace(/(\.|#)[\w-]+/g, '<span style="color:#fbbf24">$&</span>')  // Selectors amber
-      .replace(/\/\*[\s\S]*?\*\//g, '<span style="color:#71717a">$&</span>')  // Comments gray
-      .replace(/{|}/g, '<span style="color:#f472b6">$&</span>');  // Braces pink
+    let result = code;
+    
+    // Properties (before colon)
+    result = result.replace(/([\w-]+)\s*:/g, '<span style="color:#7dd3fc">$1</span>:');
+    
+    // Values (after colon, before semicolon)
+    result = result.replace(/:\s*([^;{}]+)/g, ': <span style="color:#4ade80">$1</span>');
+    
+    // Selectors (.class, #id)
+    result = result.replace(/(\.|#)[\w-]+/g, '<span style="color:#fbbf24">$&</span>');
+    
+    // Braces
+    result = result.replace(/{|}/g, '<span style="color:#f472b6">$&</span>');
+    
+    return result;
   } else {
     // JavaScript
-    const keywords = ['const', 'let', 'var', 'function', 'return', 'if', 'else', 'for', 'while', 'class', 'import', 'export', 'from', 'async', 'await', 'try', 'catch', 'new', 'this', 'true', 'false', 'null', 'undefined'];
-    
     let result = code
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
     
     // Keywords
+    const keywords = ['const', 'let', 'var', 'function', 'return', 'if', 'else', 'for', 'while', 'class', 'import', 'export', 'from', 'async', 'await', 'try', 'catch', 'new', 'this', 'true', 'false', 'null', 'undefined'];
+    
     keywords.forEach(keyword => {
       const regex = new RegExp(`\\b${keyword}\\b`, 'g');
       result = result.replace(regex, `<span style="color:#f472b6">${keyword}</span>`);
