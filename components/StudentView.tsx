@@ -9,35 +9,39 @@ interface StudentViewProps {
   onGoHome: () => void;
 }
 
-// Syntax highlighter function - returns React elements
-function highlightSyntax(code: string, type: 'html' | 'css' | 'js') {
+// Simple syntax highlighter using dangerouslySetInnerHTML
+function getHighlightedCode(code: string, type: 'html' | 'css' | 'js'): string {
   if (type === 'html') {
-    // Highlight HTML
-    const highlighted = code
+    // First escape HTML entities
+    let escaped = code
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/(&lt;\/?)([\w-]+)/g, '<span class="text-pink-400">$1$2</span>')
-      .replace(/([\w-]+)=/g, '<span class="text-amber-300">$1</span>=')
-      .replace(/"([^"]*)"/g, '<span class="text-green-400">"$1"</span>')
-      .replace(/&lt;!--(.*?)--&gt;/g, '<span class="text-zinc-500">&lt;!--$1--&gt;</span>');
+      .replace(/>/g, '&gt;');
     
-    return React.createElement('span', { dangerouslySetInnerHTML: { __html: highlighted } });
+    // Then apply highlighting - use more specific patterns
+    return escaped
+      // Tags (e.g., <div>, </div>, <br/>)
+      .replace(/(&lt;\/?[\w-]+)(&gt;|\s)/g, '<span style="color:#f472b6">$1</span>$2')
+      // Closing tag marker
+      .replace(/(&lt;)\/(\/?)/g, '$1<span style="color:#f472b6">/</span>$2')
+      // Attributes
+      .replace(/\s([\w-]+)=/g, ' <span style="color:#fbbf24">$1</span>=')
+      // String values in attributes
+      .replace(/"([^"]*)"/g, '<span style="color:#4ade80">"$1"</span>')
+      // Comments
+      .replace(/&lt;!--(.*?)--&gt;/g, '<span style="color:#71717a">&lt;!--$1--&gt;</span>');
   } else if (type === 'css') {
-    // Highlight CSS
-    const highlighted = code
-      .replace(/([\w-]+)\s*:/g, '<span class="text-sky-300">$1</span>:')
-      .replace(/:\s*([^;{}]+)/g, ': <span class="text-green-400">$1</span>')
-      .replace(/(\.|#)[\w-]+/g, '<span class="text-amber-300">$&</span>')
-      .replace(/\/\*[\s\S]*?\*\//g, '<span class="text-zinc-500">$&</span>')
-      .replace(/{|}/g, '<span class="text-pink-400">$&</span>');
-    
-    return React.createElement('span', { dangerouslySetInnerHTML: { __html: highlighted } });
+    return code
+      .replace(/([\w-]+)\s*:/g, '<span style="color:#7dd3fc">$1</span>:')  // Properties light blue
+      .replace(/:\s*([^;{}]+)/g, ': <span style="color:#4ade80">$1</span>')  // Values green
+      .replace(/(\.|#)[\w-]+/g, '<span style="color:#fbbf24">$&</span>')  // Selectors amber
+      .replace(/\/\*[\s\S]*?\*\//g, '<span style="color:#71717a">$&</span>')  // Comments gray
+      .replace(/{|}/g, '<span style="color:#f472b6">$&</span>');  // Braces pink
   } else {
-    // Highlight JavaScript
+    // JavaScript
     const keywords = ['const', 'let', 'var', 'function', 'return', 'if', 'else', 'for', 'while', 'class', 'import', 'export', 'from', 'async', 'await', 'try', 'catch', 'new', 'this', 'true', 'false', 'null', 'undefined'];
     
-    let highlighted = code
+    let result = code
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
@@ -45,24 +49,24 @@ function highlightSyntax(code: string, type: 'html' | 'css' | 'js') {
     // Keywords
     keywords.forEach(keyword => {
       const regex = new RegExp(`\\b${keyword}\\b`, 'g');
-      highlighted = highlighted.replace(regex, `<span class="text-pink-400">${keyword}</span>`);
+      result = result.replace(regex, `<span style="color:#f472b6">${keyword}</span>`);
     });
     
     // Strings
-    highlighted = highlighted
-      .replace(/('[^']*')/g, '<span class="text-green-400">$1</span>')
-      .replace(/("[^"]*")/g, '<span class="text-green-400">$1</span>')
-      .replace(/(`[^`]*`)/g, '<span class="text-green-400">$1</span>');
+    result = result
+      .replace(/('[^']*')/g, '<span style="color:#4ade80">$1</span>')
+      .replace(/("[^"]*")/g, '<span style="color:#4ade80">$1</span>')
+      .replace(/(`[^`]*`)/g, '<span style="color:#4ade80">$1</span>');
     
     // Comments
-    highlighted = highlighted
-      .replace(/(\/\/.*$)/gm, '<span class="text-zinc-500">$1</span>')
-      .replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="text-zinc-500">$1</span>');
+    result = result
+      .replace(/(\/\/.*$)/gm, '<span style="color:#71717a">$1</span>')
+      .replace(/(\/\*[\s\S]*?\*\/)/g, '<span style="color:#71717a">$1</span>');
     
     // Function names
-    highlighted = highlighted.replace(/(\w+)(?=\()/g, '<span class="text-sky-300">$1</span>');
+    result = result.replace(/(\w+)(?=\()/g, '<span style="color:#7dd3fc">$1</span>');
     
-    return React.createElement('span', { dangerouslySetInnerHTML: { __html: highlighted } });
+    return result;
   }
 }
 
@@ -238,9 +242,12 @@ button {
 
           {/* Code Display with Syntax Highlighting */}
           <div className="flex-1 bg-[#1e1e1e] p-4 overflow-auto font-mono text-sm leading-relaxed">
-            <pre className="whitespace-pre-wrap break-all">
-              {highlightSyntax(getCodeContent(), activeCodeTab)}
-            </pre>
+            <pre 
+              className="whitespace-pre-wrap break-all"
+              dangerouslySetInnerHTML={{ 
+                __html: getHighlightedCode(getCodeContent(), activeCodeTab) 
+              }}
+            />
           </div>
         </div>
 
