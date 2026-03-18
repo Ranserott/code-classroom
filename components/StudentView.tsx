@@ -1,11 +1,68 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { LogOut, Code, Wifi, WifiOff, Eye, FileCode, MonitorPlay } from 'lucide-react';
+import { LogOut, Code, Wifi, WifiOff, FileCode, MonitorPlay, Eye } from 'lucide-react';
 
 interface StudentViewProps {
   roomCode: string;
   onGoHome: () => void;
+}
+
+// Syntax highlighter function
+function highlightSyntax(code: string, type: 'html' | 'css' | 'js'): JSX.Element {
+  if (type === 'html') {
+    // Highlight HTML
+    const highlighted = code
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/(&lt;\/?)([\w-]+)/g, '<span class="text-pink-400">$1$2</span>')
+      .replace(/([\w-]+)=/g, '<span class="text-amber-300">$1</span>=')
+      .replace(/"([^"]*)"/g, '<span class="text-green-400">"$1"</span>')
+      .replace(/&lt;!--(.*?)--&gt;/g, '<span class="text-zinc-500">&lt;!--$1--&gt;</span>');
+    
+    return <span dangerouslySetInnerHTML={{ __html: highlighted }} />;
+  } else if (type === 'css') {
+    // Highlight CSS
+    const highlighted = code
+      .replace(/([\w-]+)\s*:/g, '<span class="text-sky-300">$1</span>:')
+      .replace(/:\s*([^;{}]+)/g, ': <span class="text-green-400">$1</span>')
+      .replace(/(\.|#)[\w-]+/g, '<span class="text-amber-300">$&</span>')
+      .replace(/\/\*[\s\S]*?\*\//g, '<span class="text-zinc-500">$&</span>')
+      .replace(/{|}/g, '<span class="text-pink-400">$&</span>');
+    
+    return <span dangerouslySetInnerHTML={{ __html: highlighted }} />;
+  } else {
+    // Highlight JavaScript
+    const keywords = ['const', 'let', 'var', 'function', 'return', 'if', 'else', 'for', 'while', 'class', 'import', 'export', 'from', 'async', 'await', 'try', 'catch', 'new', 'this', 'true', 'false', 'null', 'undefined'];
+    
+    let highlighted = code
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    
+    // Keywords
+    keywords.forEach(keyword => {
+      const regex = new RegExp(`\\b${keyword}\\b`, 'g');
+      highlighted = highlighted.replace(regex, `<span class="text-pink-400">${keyword}</span>`);
+    });
+    
+    // Strings
+    highlighted = highlighted
+      .replace(/('[^']*')/g, '<span class="text-green-400">$1</span>')
+      .replace(/("[^"]*")/g, '<span class="text-green-400">$1</span>')
+      .replace(/(`[^`]*`)/g, '<span class="text-green-400">$1</span>');
+    
+    // Comments
+    highlighted = highlighted
+      .replace(/(\/\/.*$)/gm, '<span class="text-zinc-500">$1</span>')
+      .replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="text-zinc-500">$1</span>');
+    
+    // Function names
+    highlighted = highlighted.replace(/(\w+)(?=\()/g, '<span class="text-sky-300">$1</span>');
+    
+    return <span dangerouslySetInnerHTML={{ __html: highlighted }} />;
+  }
 }
 
 export default function StudentView({ roomCode, onGoHome }: StudentViewProps) {
@@ -43,7 +100,6 @@ button {
 
   const [isConnected, setIsConnected] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-  const [activeTab, setActiveTab] = useState<'code' | 'preview'>('preview');
   const [activeCodeTab, setActiveCodeTab] = useState<'html' | 'css' | 'js'>('html');
 
   const srcDoc = `
@@ -58,6 +114,14 @@ button {
       </body>
     </html>
   `;
+
+  const getCodeContent = () => {
+    switch (activeCodeTab) {
+      case 'html': return html;
+      case 'css': return css;
+      case 'js': return js;
+    }
+  };
 
   // Connect to SSE endpoint
   useEffect(() => {
@@ -101,14 +165,6 @@ button {
       }
     };
   }, []);
-
-  const getCodeContent = () => {
-    switch (activeCodeTab) {
-      case 'html': return html;
-      case 'css': return css;
-      case 'js': return js;
-    }
-  };
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
@@ -157,7 +213,7 @@ button {
 
       {/* Main Content - Split View */}
       <main className="h-[calc(100vh-64px)] flex">
-        {/* Left Side - Code */}
+        {/* Left Side - Code with Syntax Highlighting */}
         <div className="w-1/2 flex flex-col border-r border-zinc-800">
           {/* Code Tabs */}
           <div className="flex border-b border-zinc-800 bg-zinc-900/50">
@@ -179,10 +235,10 @@ button {
             ))}
           </div>
 
-          {/* Code Display */}
-          <div className="flex-1 bg-zinc-900/30 p-4 overflow-auto">
-            <pre className="text-sm font-mono text-zinc-300 leading-relaxed whitespace-pre-wrap">
-              {getCodeContent()}
+          {/* Code Display with Syntax Highlighting */}
+          <div className="flex-1 bg-[#1e1e1e] p-4 overflow-auto font-mono text-sm leading-relaxed">
+            <pre className="whitespace-pre-wrap break-all">
+              {highlightSyntax(getCodeContent(), activeCodeTab)}
             </pre>
           </div>
         </div>
