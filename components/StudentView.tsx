@@ -1,83 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { LogOut, Code, Wifi, WifiOff, FileCode, MonitorPlay } from 'lucide-react';
-import React from 'react';
+import Editor from '@monaco-editor/react';
+import { LogOut, Wifi, WifiOff, FileCode, MonitorPlay } from 'lucide-react';
 
 interface StudentViewProps {
   roomCode: string;
   onGoHome: () => void;
-}
-
-// Simple syntax highlighter - returns highlighted HTML string
-function getHighlightedCode(code: string, type: 'html' | 'css' | 'js'): string {
-  if (type === 'html') {
-    // Escape HTML first
-    let result = code
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
-    
-    // Highlight tags (e.g., <div>, </div>)
-    result = result.replace(/(&lt;\/?)([\w-]+)/g, '<span style="color:#f472b6">$1$2</span>');
-    
-    // Highlight closing >
-    result = result.replace(/&gt;/g, '<span style="color:#f472b6">&gt;</span>');
-    
-    // Highlight attributes
-    result = result.replace(/\s([\w-]+)=/g, ' <span style="color:#fbbf24">$1</span>=');
-    
-    // Highlight string values
-    result = result.replace(/"([^"]*)"/g, '<span style="color:#4ade80">"$1"</span>');
-    
-    return result;
-  } else if (type === 'css') {
-    let result = code;
-    
-    // Properties (before colon)
-    result = result.replace(/([\w-]+)\s*:/g, '<span style="color:#7dd3fc">$1</span>:');
-    
-    // Values (after colon, before semicolon)
-    result = result.replace(/:\s*([^;{}]+)/g, ': <span style="color:#4ade80">$1</span>');
-    
-    // Selectors (.class, #id)
-    result = result.replace(/(\.|#)[\w-]+/g, '<span style="color:#fbbf24">$&</span>');
-    
-    // Braces
-    result = result.replace(/{|}/g, '<span style="color:#f472b6">$&</span>');
-    
-    return result;
-  } else {
-    // JavaScript
-    let result = code
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
-    
-    // Keywords
-    const keywords = ['const', 'let', 'var', 'function', 'return', 'if', 'else', 'for', 'while', 'class', 'import', 'export', 'from', 'async', 'await', 'try', 'catch', 'new', 'this', 'true', 'false', 'null', 'undefined'];
-    
-    keywords.forEach(keyword => {
-      const regex = new RegExp(`\\b${keyword}\\b`, 'g');
-      result = result.replace(regex, `<span style="color:#f472b6">${keyword}</span>`);
-    });
-    
-    // Strings
-    result = result
-      .replace(/('[^']*')/g, '<span style="color:#4ade80">$1</span>')
-      .replace(/("[^"]*")/g, '<span style="color:#4ade80">$1</span>')
-      .replace(/(`[^`]*`)/g, '<span style="color:#4ade80">$1</span>');
-    
-    // Comments
-    result = result
-      .replace(/(\/\/.*$)/gm, '<span style="color:#71717a">$1</span>')
-      .replace(/(\/\*[\s\S]*?\*\/)/g, '<span style="color:#71717a">$1</span>');
-    
-    // Function names
-    result = result.replace(/(\w+)(?=\()/g, '<span style="color:#7dd3fc">$1</span>');
-    
-    return result;
-  }
 }
 
 export default function StudentView({ roomCode, onGoHome }: StudentViewProps) {
@@ -103,10 +32,6 @@ button {
   padding: 10px 20px;
   font-size: 16px;
   cursor: pointer;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
 }`);
   
   const [js, setJs] = useState(`document.getElementById("btn").addEventListener("click", () => {
@@ -129,6 +54,7 @@ button {
       </body>
     </html>
   `;
+
 
   const getCodeContent = () => {
     switch (activeCodeTab) {
@@ -181,6 +107,7 @@ button {
     };
   }, []);
 
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
       {/* Header */}
@@ -228,7 +155,7 @@ button {
 
       {/* Main Content - Split View */}
       <main className="h-[calc(100vh-64px)] flex">
-        {/* Left Side - Code with Syntax Highlighting */}
+        {/* Left Side - Monaco Editor (Read Only) */}
         <div className="w-1/2 flex flex-col border-r border-zinc-800">
           {/* Code Tabs */}
           <div className="flex border-b border-zinc-800 bg-zinc-900/50">
@@ -250,12 +177,21 @@ button {
             ))}
           </div>
 
-          {/* Code Display with Syntax Highlighting */}
-          <div className="flex-1 bg-[#1e1e1e] p-4 overflow-auto font-mono text-sm leading-relaxed">
-            <pre 
-              className="whitespace-pre-wrap break-all"
-              dangerouslySetInnerHTML={{ 
-                __html: getHighlightedCode(getCodeContent(), activeCodeTab) 
+          {/* Monaco Editor - Read Only */}
+          <div className="flex-1">
+            <Editor
+              height="100%"
+              language={activeCodeTab === 'js' ? 'javascript' : activeCodeTab}
+              value={getCodeContent()}
+              options={{
+                readOnly: true,
+                minimap: { enabled: false },
+                fontSize: 14,
+                lineNumbers: 'on',
+                roundedSelection: false,
+                scrollBeyondLastLine: false,
+                automaticLayout: true,
+                theme: 'vs-dark',
               }}
             />
           </div>
