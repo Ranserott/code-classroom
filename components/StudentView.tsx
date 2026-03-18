@@ -1,20 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { LogOut, Code, Play, RefreshCw } from 'lucide-react';
+import { LogOut, Code, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 
 interface StudentViewProps {
   roomCode: string;
   onGoHome: () => void;
 }
 
-// Default code that will be shown (in a real app, this would come from a backend)
-const defaultCode = {
-  html: `<div class="container">
+export default function StudentView({ roomCode, onGoHome }: StudentViewProps) {
+  const [html, setHtml] = useState(`<div class="container">
   <h1>Hello World!</h1>
   <button id="btn">Click me</button>
-</div>`,
-  css: `.container {
+</div>`);
+  
+  const [css, setCss] = useState(`.container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -35,17 +35,14 @@ button {
   color: white;
   border: none;
   border-radius: 4px;
-}`,
-  js: `document.getElementById("btn").addEventListener("click", () => {
+}`);
+  
+  const [js, setJs] = useState(`document.getElementById("btn").addEventListener("click", () => {
   alert("Hello from the classroom!");
-});`
-};
+});`);
 
-export default function StudentView({ roomCode, onGoHome }: StudentViewProps) {
-  const [html, setHtml] = useState(defaultCode.html);
-  const [css, setCss] = useState(defaultCode.css);
-  const [js, setJs] = useState(defaultCode.js);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
   const srcDoc = `
     <!DOCTYPE html>
@@ -60,10 +57,49 @@ export default function StudentView({ roomCode, onGoHome }: StudentViewProps) {
     </html>
   `;
 
-  const refreshPreview = () => {
-    // In a real app with backend, this would fetch the latest code
-    setLastUpdated(new Date());
-  };
+  // Connect to SSE endpoint
+  useEffect(() => {
+    let eventSource: EventSource | null = null;
+    
+    const connect = () => {
+      eventSource = new EventSource('/api/code?stream=true');
+      
+      eventSource.onopen = () => {
+        setIsConnected(true);
+      };
+      
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.html) setHtml(data.html);
+          if (data.css) setCss(data.css);
+          if (data.js) setJs(data.js);
+          setLastUpdate(new Date());
+        } catch (error) {
+          console.error('Error parsing SSE data:', error);
+        }
+      };
+      
+      eventSource.onerror = () => {
+        setIsConnected(false);
+        // Reconnect after 3 seconds
+        setTimeout(() => {
+          if (eventSource) {
+            eventSource.close();
+          }
+          connect();
+        }, 3000);
+      };
+    };
+    
+    connect();
+    
+    return () => {
+      if (eventSource) {
+        eventSource.close();
+      }
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
@@ -85,13 +121,20 @@ export default function StudentView({ roomCode, onGoHome }: StudentViewProps) {
           </div>
 
           <div className="flex items-center gap-3">
-            <button
-              onClick={refreshPreview}
-              className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-colors"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Refresh
-            </button>
+            {/* Connection Status */}
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${
+              isConnected ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'
+            }`}>
+              {isConnected ? <Wifi className="w-4 h-4" /> : <WifiOff className="w-4 h-4" />}
+              <span className="text-sm">{isConnected ? 'Live' : 'Reconnecting...'}</span>
+            </div>
+
+            {lastUpdate && (
+              <span className="text-xs text-zinc-500">
+                Updated: {lastUpdate.toLocaleTimeString()}
+              </span>
+            )}
+
             <button
               onClick={onGoHome}
               className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-colors"
@@ -110,11 +153,11 @@ export default function StudentView({ roomCode, onGoHome }: StudentViewProps) {
           <div className="px-4 py-2 border-b border-zinc-800 bg-zinc-900/30 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Code className="w-4 h-4 text-zinc-400" />
-              <span className="text-sm text-zinc-400">Live Preview</span>
+              <span className="text-sm text-zinc-400">Live Preview - Teacher Code</span>
             </div>
-            {lastUpdated && (
-              <span className="text-xs text-zinc-500">
-                Last updated: {lastUpdated.toLocaleTimeString()}
+            {!isConnected && (
+              <span className="text-xs text-yellow-500">
+                Reconnecting to server...
               </span>
             )}
           </div>

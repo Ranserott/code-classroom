@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Editor from '@monaco-editor/react';
-import { Copy, Check, Play, Code, Eye, LogOut } from 'lucide-react';
+import { Copy, Check, Play, Code, Eye, LogOut, Rocket } from 'lucide-react';
 
 interface TeacherViewProps {
   roomCode: string;
@@ -41,6 +41,8 @@ button {
   const [activeTab, setActiveTab] = useState<'html' | 'css' | 'js'>('html');
   const [showPreview, setShowPreview] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isDeploying, setIsDeploying] = useState(false);
+  const [deployStatus, setDeployStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   const srcDoc = `
     <!DOCTYPE html>
@@ -63,6 +65,40 @@ button {
 
   const togglePreview = () => {
     setShowPreview(!showPreview);
+  };
+
+  const handleDeploy = async () => {
+    setIsDeploying(true);
+    setDeployStatus('idle');
+    
+    try {
+      const response = await fetch('/api/code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          html,
+          css,
+          js,
+        }),
+      });
+
+      if (response.ok) {
+        setDeployStatus('success');
+        // Show preview after successful deploy
+        setShowPreview(true);
+      } else {
+        setDeployStatus('error');
+      }
+    } catch (error) {
+      console.error('Deploy error:', error);
+      setDeployStatus('error');
+    } finally {
+      setIsDeploying(false);
+      // Clear status after 3 seconds
+      setTimeout(() => setDeployStatus('idle'), 3000);
+    }
   };
 
   return (
@@ -92,20 +128,57 @@ button {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Deploy Button */}
+            <button
+              onClick={handleDeploy}
+              disabled={isDeploying}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                deployStatus === 'success'
+                  ? 'bg-green-600 text-white'
+                  : deployStatus === 'error'
+                  ? 'bg-red-600 text-white'
+                  : isDeploying
+                  ? 'bg-zinc-700 text-zinc-400 cursor-wait'
+                  : 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg hover:shadow-xl'
+              }`}
+            >
+              {isDeploying ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Deploying...
+                </>
+              ) : deployStatus === 'success' ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  Deployed!
+                </>
+              ) : deployStatus === 'error' ? (
+                <>
+                  <span className="w-4 h-4">!</span>
+                  Failed
+                </>
+              ) : (
+                <>
+                  <Rocket className="w-4 h-4" />
+                  Deploy
+                </>
+              )}
+            </button>
+
             <button
               onClick={togglePreview}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors ${
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                 showPreview 
                   ? 'bg-blue-600 text-white' 
                   : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
               }`}
             >
               {showPreview ? <Eye className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-              {showPreview ? 'Hide Preview' : 'Show Preview'}
+              {showPreview ? 'Hide' : 'Show'}
             </button>
             <button
               onClick={onGoHome}
-              className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-colors"
+              className="flex items-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-colors"
             >
               <LogOut className="w-4 h-4" />
               Leave
