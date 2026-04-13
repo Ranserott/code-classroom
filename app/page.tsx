@@ -9,6 +9,7 @@ export default function Home() {
   const [view, setView] = useState<'home' | 'teacher' | 'student'>('home');
   const [roomCode, setRoomCode] = useState('');
   const [inputCode, setInputCode] = useState('');
+  const [mode, setMode] = useState<'web' | 'python'>('web');
 
   const createRoom = () => {
     const code = generateRoomCode();
@@ -30,11 +31,11 @@ export default function Home() {
   };
 
   if (view === 'teacher') {
-    return <TeacherView roomCode={roomCode} onGoHome={goHome} />;
+    return <TeacherView roomCode={roomCode} onGoHome={goHome} mode={mode} />;
   }
 
   if (view === 'student') {
-    return <StudentView roomCode={roomCode} onGoHome={goHome} />;
+    return <StudentView roomCode={roomCode} onGoHome={goHome} mode={mode} />;
   }
 
   return (
@@ -63,12 +64,29 @@ export default function Home() {
             <p className="text-zinc-400 mb-6">
               Crea un aula, escribe código y compártelo con tus estudiantes.
             </p>
-            <button 
-              onClick={createRoom}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
-            >
-              Crear Nueva Aula
-            </button>
+            <div className="space-y-3">
+              <p className="text-zinc-400 text-sm text-center">¿Qué quieres enseñar?</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => { setMode('web'); createRoom(); }}
+                  className="flex flex-col items-center gap-1 py-3 px-3 bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/30 text-orange-400 rounded-lg transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                  </svg>
+                  <span className="text-xs font-medium">Web (HTML/CSS/JS)</span>
+                </button>
+                <button
+                  onClick={() => { setMode('python'); createRoom(); }}
+                  className="flex flex-col items-center gap-1 py-3 px-3 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-400 rounded-lg transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6a2 2 0 100-4m0 4v2m0-10a2 2 0 110-4m0 4v2m0-10V4m0 2a2 2 0 100 4" />
+                  </svg>
+                  <span className="text-xs font-medium">Python</span>
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Student Card */}

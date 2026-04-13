@@ -3,13 +3,15 @@
 import { useState, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import { LogOut, Wifi, WifiOff, FileCode, MonitorPlay } from 'lucide-react';
+import PythonStudentView from './PythonStudentView';
 
 interface StudentViewProps {
   roomCode: string;
   onGoHome: () => void;
+  mode?: 'web' | 'python';
 }
 
-export default function StudentView({ roomCode, onGoHome }: StudentViewProps) {
+export default function StudentView({ roomCode, onGoHome, mode: initialMode }: StudentViewProps) {
   const [html, setHtml] = useState(`<div class="container">
   <h1>Hello World!</h1>
   <button id="btn">Click me</button>
@@ -41,6 +43,8 @@ button {
   const [isConnected, setIsConnected] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [activeCodeTab, setActiveCodeTab] = useState<'html' | 'css' | 'js'>('html');
+  const [roomMode, setRoomMode] = useState<'web' | 'python'>(initialMode || 'web');
+  const [isLoading, setIsLoading] = useState(true);
 
   const srcDoc = `
     <!DOCTYPE html>
@@ -55,6 +59,22 @@ button {
     </html>
   `;
 
+  // Show loading while waiting for SSE to confirm mode
+  if (isLoading && roomMode === 'web' && !initialMode) {
+    return (
+      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-zinc-400">Conectando al aula...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If Python mode, render Python student view
+  if (roomMode === 'python') {
+    return <PythonStudentView roomCode={roomCode} onGoHome={onGoHome} />;
+  }
 
   const getCodeContent = () => {
     switch (activeCodeTab) {
@@ -69,7 +89,7 @@ button {
     let eventSource: EventSource | null = null;
     
     const connect = () => {
-      eventSource = new EventSource('/api/code?stream=true');
+      eventSource = new EventSource(`/api/code?stream=true&room=${roomCode}`);
       
       eventSource.onopen = () => {
         setIsConnected(true);
@@ -78,6 +98,8 @@ button {
       eventSource.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
+          if (data.mode) setRoomMode(data.mode);
+          setIsLoading(false);
           if (data.html) setHtml(data.html);
           if (data.css) setCss(data.css);
           if (data.js) setJs(data.js);

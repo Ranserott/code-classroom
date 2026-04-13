@@ -3,13 +3,15 @@
 import { useState } from 'react';
 import Editor from '@monaco-editor/react';
 import { Copy, Check, Play, Code, Eye, LogOut, Rocket } from 'lucide-react';
+import PythonTeacherView from './PythonTeacherView';
 
 interface TeacherViewProps {
   roomCode: string;
   onGoHome: () => void;
+  mode: 'web' | 'python';
 }
 
-export default function TeacherView({ roomCode, onGoHome }: TeacherViewProps) {
+export default function TeacherView({ roomCode, onGoHome, mode }: TeacherViewProps) {
   const [html, setHtml] = useState(`<div class="container">
   <h1>Hello World!</h1>
   <button id="btn">Click me</button>
@@ -44,6 +46,12 @@ button {
   const [isDeploying, setIsDeploying] = useState(false);
   const [deployStatus, setDeployStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
+  // If Python mode, render Python view
+  if (mode === 'python') {
+    return <PythonTeacherView roomCode={roomCode} onGoHome={onGoHome} />;
+  }
+
+  // Web mode
   const srcDoc = `
     <!DOCTYPE html>
     <html>
@@ -78,6 +86,8 @@ button {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          roomCode,
+          mode: 'web',
           html,
           css,
           js,
