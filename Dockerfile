@@ -8,7 +8,7 @@ WORKDIR /app
 
 # Install dependencies
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm install --prefer-offline
 
 # Rebuild the source code only when needed
 FROM base AS builder
