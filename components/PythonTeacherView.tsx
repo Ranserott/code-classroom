@@ -42,14 +42,15 @@ print(df)
   // Load Pyodide
   useEffect(() => {
     const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js';
+    script.src = 'https://cdn.jsdelivr.net/pyodide/v0.24.3/full/pyodide.js';
     script.async = true;
     script.onload = async () => {
       try {
         pyodideRef.current = await window.loadPyodide({
-          indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.25.0/full/',
+          indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.24.3/full/',
         });
-        // Pre-import pandas
+        // Load pandas package (micropip-free approach)
+        await pyodideRef.current.loadPackage('pandas');
         await pyodideRef.current.runPythonAsync(`
 import pandas as pd
 import sys
