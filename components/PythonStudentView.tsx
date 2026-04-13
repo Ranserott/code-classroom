@@ -142,7 +142,7 @@ sys.stderr = StringIO()
 
       const stdout = await pyodide.runPythonAsync(`sys.stdout.getvalue()`);
       if (stdout) {
-        stdout.split('\n').filter(line => line.trim()).forEach((line: string) => {
+        stdout.split('\n').filter((line: string) => line.trim()).forEach((line: string) => {
           setOutput(prev => [...prev, { type: 'stdout', content: line }]);
         });
       }
