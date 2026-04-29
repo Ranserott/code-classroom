@@ -16,7 +16,7 @@ export default function StudentView({ roomCode, onGoHome, mode: initialMode }: S
   <h1>Hello World!</h1>
   <button id="btn">Click me</button>
 </div>`);
-  
+
   const [css, setCss] = useState(`.container {
   display: flex;
   flex-direction: column;
@@ -35,7 +35,7 @@ button {
   font-size: 16px;
   cursor: pointer;
 }`);
-  
+
   const [js, setJs] = useState(`document.getElementById("btn").addEventListener("click", () => {
   alert("Hello from the classroom!");
 });`);
@@ -71,7 +71,8 @@ button {
     );
   }
 
-  // If Python mode, render Python student view
+  // Switch to PythonStudentView when SSE confirms python mode
+  // Also handle initial python mode (from page.tsx state)
   if (roomMode === 'python') {
     return <PythonStudentView roomCode={roomCode} onGoHome={onGoHome} />;
   }
